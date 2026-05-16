@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OBS Overlay - Turnamen FPS</title>
+    <style>
+        body { margin: 0; padding: 0; background-color: transparent; font-family: 'Impact', sans-serif; display: flex; justify-content: center; padding-top: 50px; }
+        .scoreboard { display: flex; align-items: center; background: linear-gradient(90deg, #3a0000, #800000, #3a0000); border: 3px solid #ff1a1a; border-radius: 15px; color: white; width: 850px; }
+        .team { display: flex; align-items: center; flex: 1; padding: 10px 20px; }
+        .team-left { justify-content: flex-end; }
+        .team-right { justify-content: flex-start; }
+        .team-name { font-size: 35px; letter-spacing: 2px; text-shadow: 2px 2px 5px black; }
+        .score-box { background-color: white; color: black; font-size: 50px; font-weight: bold; padding: 5px 25px; margin: 0 20px; border-radius: 8px; transition: transform 0.2s ease; }
+        .vs-box { font-size: 30px; font-style: italic; color: #ff4d4d; text-shadow: 2px 2px 5px black; padding: 0 20px; }
+        
+        /* CSS Khusus Logo */
+        .team-logo { width: 60px; height: 60px; object-fit: contain; display: none; /* Disembunyikan awalnya */ }
+        .logo-left { margin-right: 15px; }
+        .logo-right { margin-left: 15px; }
+    </style>
+</head>
+<body>
+    <div class="scoreboard">
+        <div class="team team-left">
+            <img id="logoA" class="team-logo logo-left" src="">
+            <div class="team-name" id="nameA">TEAM 1</div>
+            <div class="score-box" id="scoreA">0</div>
+        </div>
+        
+        <div class="vs-box">VS</div>
+        
+        <div class="team team-right">
+            <div class="score-box" id="scoreB">0</div>
+            <div class="team-name" id="nameB">TEAM 2</div>
+            <img id="logoB" class="team-logo logo-right" src=""> 
+        </div>
+    </div>
+
+    <script>
+        function connectWebSocket() {
+            const ws = new WebSocket('ws://localhost:8080');
+            ws.onopen = () => console.log('Terkoneksi ke Control Panel!');
+
+            // === INI ADALAH BAGIAN ws.onmessage YANG BARU ===
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                // 1. Update Teks Nama & Skor
+                document.getElementById('nameA').innerText = data.teamA.name;
+                document.getElementById('scoreA').innerText = data.teamA.score;
+                document.getElementById('nameB').innerText = data.teamB.name;
+                document.getElementById('scoreB').innerText = data.teamB.score;
+
+                // 2. Mengurus Tampilan Logo Tim A
+                const imgA = document.getElementById('logoA');
+                if (data.teamA.logo && data.teamA.logo !== "") {
+                    // Mengubah path lokal komputer menjadi format link file:///
+                    imgA.src = "file:///" + data.teamA.logo.replaceAll("\\", "/");
+                    imgA.style.display = "block"; // Tampilkan logo
+                } else {
+                    imgA.style.display = "none"; // Sembunyikan jika tidak ada logo
+                }
+
+                // 3. Mengurus Tampilan Logo Tim B
+                const imgB = document.getElementById('logoB');
+                if (data.teamB.logo && data.teamB.logo !== "") {
+                    imgB.src = "file:///" + data.teamB.logo.replaceAll("\\", "/");
+                    imgB.style.display = "block";
+                } else {
+                    imgB.style.display = "none";
+                }
+            };
+            // ================================================
+
+            ws.onclose = () => {
+                console.log('Terputus. Mencoba menghubungkan kembali...');
+                setTimeout(connectWebSocket, 2000);
+            };
+        }
+        connectWebSocket();
+    </script>
+</body>
+</html>
