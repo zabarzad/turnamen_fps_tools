@@ -258,7 +258,7 @@ class ControlPanelScreen extends StatelessWidget {
                   _buildLinkBox(
                     context,
                     "Url Nama 1",
-                    "hhttp://localhost:8080/name1.html",
+                    "http://localhost:8080/name1.html",
                   ),
                   _buildLinkBox(
                     context,
